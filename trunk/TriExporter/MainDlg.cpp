@@ -112,6 +112,20 @@ static void ParseVec4Str(const std::string& s, float* f1, float* f2, float* f3, 
 	*f4 = (float)atof(s4.c_str());
 }
 
+static const std::string nullStr;
+
+static const std::string& GetParamValue(const std::vector<RedParameter>& params, const std::string& name)
+{
+	std::vector<RedParameter>::const_iterator i = params.begin();
+	while(i != params.end())
+	{
+		if (i->name == name)
+			return i->value;
+		++i;
+	}
+	return nullStr;
+}
+
 LRESULT CMainDlg::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandled)
 {
 	CTreeItem ti = m_Tree.GetSelectedItem();
@@ -165,16 +179,19 @@ LRESULT CMainDlg::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandle
 							if (out >= 0)
 							{
 								float r, g, b, a;
-								// Assuming the first one is "MaterialDiffuseColor"
-								ParseVec4Str(redEntity->meshes[m].parameters[0].value, &r, &g, &b, &a);
-								f = redEntity->meshes[m].resources[0].value.c_str();
-								/* duplicate the missing resources with this one */
-								for(int j=0; j<missedCount+1; j++)
+								const std::string& diffuseColorStr = GetParamValue(redEntity->meshes[m].parameters, "MaterialDiffuseColor");
+								if (diffuseColorStr.size() > 0)
 								{
-									Add(f.Right(f.GetLength()-f.ReverseFind('/')-1), out, r, g, b);
-									m_p3d.TextureChange(sf, texdata);
+									ParseVec4Str(diffuseColorStr, &r, &g, &b, &a);
+									f = redEntity->meshes[m].resources[0].value.c_str();
+									/* duplicate the missing resources with this one */
+									for(int j=0; j<missedCount+1; j++)
+									{
+										Add(f.Right(f.GetLength()-f.ReverseFind('/')-1), out, r, g, b);
+										m_p3d.TextureChange(sf, texdata);
+									}
+									missedCount = 0;
 								}
-								missedCount = 0;
 							}
 							else
 								++missedCount;
@@ -983,7 +1000,8 @@ LRESULT CMainDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 		FillTree();
 	}
 	m_p3d.Render();
-	rotateOnIdle = false;
+	rotateOnIdle = true;
+	CheckMenuItem(GetMenu(), ID_CONFIG_ROTATEMODEL, rotateOnIdle ? (MF_BYCOMMAND | MF_CHECKED) : (MF_BYCOMMAND | MF_UNCHECKED));
 	wireMode = false;
 	EnableAll(FALSE);
 	return TRUE;
