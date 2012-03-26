@@ -265,13 +265,13 @@ void TriFile::ExportObj(float size, string file, string dir)
 	for(dword i = 0; i < header.numVertices; i ++)
 		out << "v " << vertices(i)->vertexPosition[0]*size << " " << vertices(i)->vertexPosition[1]*size << " " << vertices(i)->vertexPosition[2]*size << endl;
 	for(dword i = 0; i < header.numVertices; i ++)
-		out << "vt " << vertices(i)->vertexUV[0] << " " << vertices(i)->vertexUV[1] << endl;
+		out << "vt " << vertices(i)->vertexUV[0] << " " << 1.0f - vertices(i)->vertexUV[1] << endl;
 	for(dword i = 0; i < header.numVertices; i ++)
 		out << "vn " << vertices(i)->vertexNormal[0] << " " << vertices(i)->vertexNormal[1] << " " << vertices(i)->vertexNormal[2] << endl;
 	for(dword i = 0; i < header.numSurfaces; i++)
 	{
 		out << "usemtl shape" << i << endl;
-		outmtl <<"newmtl shape" << i << "\nKa 0.5 0.5 0.5\nKd 1 1 1\nKs 1 1 1\nillum 7\nNs 256\nmap_Kd " << textures[i] << "\n";
+		outmtl <<"newmtl shape" << i << "\nKa 0.5 0.5 0.5\nKd " << diffuseColors[i].r << ' ' << diffuseColors[i].g << ' ' << diffuseColors[i].b << "\nKs 1 1 1\nillum 7\nNs 256\nmap_Kd " << textures[i] << "\n";
 		for(dword c = 0; c < surfaces[i].numTriangles; c ++)
 		{
 			dword t1 = triangles[i][c][0] + 1;

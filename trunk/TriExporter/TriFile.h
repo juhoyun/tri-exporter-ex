@@ -41,6 +41,10 @@ struct Surface
 	dword numTriangles;
 };
 
+struct Diffuse
+{
+	float r, g, b;
+};
 //struct Triangle
 //{
 //	word vertices[3];
@@ -56,6 +60,7 @@ class TriFile
 		vector<Surface> surfaces;
 		vector< vector <vector<dword>> > triangles;
 		vector<string> textures;
+		vector<Diffuse> diffuseColors;
 		dword numTriangles;
 
 		TriFile():numTriangles(0), m_vertices(NULL){ ZeroMemory(&header, sizeof(Header));}
