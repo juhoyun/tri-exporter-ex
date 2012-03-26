@@ -10,6 +10,8 @@
 #include "AboutDlg.h"
 #include "UnstuffDlg.h"
 
+struct _RedEntity;
+
 class CMainDlg : public CDialogImpl<CMainDlg>,
 		// public CUpdateUI<CMainDlg>,
 		public CMessageFilter, 
@@ -42,8 +44,12 @@ private:
 	CTreeViewCtrlEx m_Tree;
 	map<string, HTREEITEM> lvis;
 	vector<string> textures;
+	vector<Diffuse> diffuseColors;
 	vector<int> texdata;
 	bool loaded;
+	bool rotateOnIdle;
+	bool wireMode;
+	struct _RedEntity* redEntity;
 public:
 	BEGIN_MSG_MAP(CMainDlg)
 		NOTIFY_HANDLER(IDC_TREE, NM_DBLCLK, OnTreeDblClick)
@@ -54,11 +60,12 @@ public:
 		COMMAND_ID_HANDLER(ID_FILE_SETFOLDER, OnSetFolder)
 		COMMAND_ID_HANDLER(ID_FILE_EXPORTMOD, OnExport)
 		COMMAND_ID_HANDLER(ID_FILE_UNSTUFF, OnUnstuff)
-		COMMAND_ID_HANDLER(ID_FILE_WIREON, OnWireOnOff)
 		COMMAND_ID_HANDLER(ID_FILE_OPENTRI, OnOpenTri)
 		COMMAND_ID_HANDLER(IDC_REMOVE, OnRemove)
 		COMMAND_ID_HANDLER(IDC_SELECT, OnSelect)
 		COMMAND_ID_HANDLER(ID_FILE_EXIT, OnCancel)
+		COMMAND_ID_HANDLER(ID_CONFIG_WIREON, OnWireOnOff)
+		COMMAND_ID_HANDLER(ID_CONFIG_ROTATEMODEL, OnConfigRotate)
 		MESSAGE_HANDLER(WM_HSCROLL, OnScaleTrack)
 		MESSAGE_HANDLER(WM_VSCROLL, OnScaleTrack)
 		NOTIFY_HANDLER(IDC_TREE, TVN_KEYDOWN, OnTvnKeydownTree)
@@ -79,6 +86,7 @@ public:
 	LRESULT OnTreeDblClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 	void Load(int out);
 	void Load(string & out);
+	void LoadRED(int out);
 	LRESULT OnOpenTri(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnSetFolder(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnScaleTrack(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -86,7 +94,7 @@ public:
 	LRESULT OnExport(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnUnstuff(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnWireOnOff(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-	void Add(const CString &texture,int data = -1);
+	void Add(const CString &texture, int data = -1, float diffuseR = 1, float diffuseG = 1, float diffuseB = 1);
 	LRESULT OnAdd(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnRemove(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	void EnableAll(BOOL bEnable=1);
@@ -94,6 +102,7 @@ public:
 	LRESULT OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnAppAbout(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnCancel(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
+	LRESULT OnConfigRotate(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	void CloseDialog(int nVal);
 	LRESULT OnTvnKeydownTree(int idCtrl, LPNMHDR pNMHDR, BOOL& bHandled);
 	void FillTextures();
