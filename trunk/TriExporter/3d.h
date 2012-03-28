@@ -15,6 +15,12 @@ class CDXMessageLoop : public CMessageLoop {
 	
 };
 
+typedef struct
+{
+	D3DMATERIAL9 material;
+	LPDIRECT3DTEXTURE9 pTexture;
+} CMaterial;
+
 class C3d : public CWindowImpl<C3d>
 {
 public:
@@ -22,7 +28,7 @@ public:
 	LPDIRECT3DDEVICE9				g_pd3dDevice;
 	LPDIRECT3DVERTEXBUFFER9			g_pVB ;
 	vector<LPDIRECT3DINDEXBUFFER9>	g_pIB;
-	vector<LPDIRECT3DTEXTURE9>		g_pTexture;
+	vector<CMaterial>				g_pMaterial;
 	ArcBall m_abArcBall;
 	float distance;
 	float alight;
@@ -56,7 +62,7 @@ public:
 	LRESULT OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	void ClearTextures();
 	void ClearIndexes();
-	void TextureChange(const StuffFile &sf, const vector<int> &textures);
+	void TextureChange(const StuffFile &sf, const vector<int> &textures, const vector<Diffuse> &diffuseColors);
 	void Open(const TriFile &tfile);
 	C3d();
 	void SwapTexture(int x, int y);

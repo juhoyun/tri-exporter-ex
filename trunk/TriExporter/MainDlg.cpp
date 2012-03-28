@@ -146,7 +146,7 @@ LRESULT CMainDlg::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandle
 				if(loaded)
 				{
 					Add(f.Right(f.GetLength()-f.ReverseFind('/')-1), out);
-					m_p3d.TextureChange(sf, texdata);
+					m_p3d.TextureChange(sf, texdata, diffuseColors);
 				}
 			}
 			else if(!f.Right(4).Compare(".gr2"))
@@ -188,7 +188,6 @@ LRESULT CMainDlg::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandle
 									for(int j=0; j<missedCount+1; j++)
 									{
 										Add(f.Right(f.GetLength()-f.ReverseFind('/')-1), out, r, g, b);
-										m_p3d.TextureChange(sf, texdata);
 									}
 									missedCount = 0;
 								}
@@ -207,6 +206,9 @@ LRESULT CMainDlg::OnTreeDblClick(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& bHandle
 						++missedCount;
 					}
 				}
+
+				m_p3d.TextureChange(sf, texdata, diffuseColors);
+				
 			}
 			else
 				MessageBox("WTF?", "Error", MB_ICONERROR | MB_OK);
@@ -795,7 +797,7 @@ LRESULT CMainDlg::OnAdd(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BO
 	CString texture;
 	m_Texture.GetWindowText(texture);
 	Add(texture);
-	m_p3d.TextureChange(sf, texdata);
+	m_p3d.TextureChange(sf, texdata, diffuseColors);
 	return 0;
 }
 
@@ -828,7 +830,7 @@ LRESULT CMainDlg::OnRemove(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/,
 			}
 		}
 		FillTextures();
-		m_p3d.TextureChange(sf, texdata);
+		m_p3d.TextureChange(sf, texdata, diffuseColors);
 	}
 	return 0;
 }

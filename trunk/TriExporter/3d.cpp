@@ -36,8 +36,8 @@ LRESULT C3d::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL
 
 void C3d::ClearTextures()
 {
-	for(unsigned int i=0; i < g_pTexture.size(); i++)
-		SAFE_RELEASE(g_pTexture[i]);
+	for(unsigned int i=0; i < g_pMaterial.size(); i++)
+		SAFE_RELEASE(g_pMaterial[i].pTexture);
 }
 
 void C3d::ClearIndexes()
@@ -46,13 +46,13 @@ void C3d::ClearIndexes()
 		SAFE_RELEASE(g_pIB[i]);
 }
 
-void C3d::TextureChange(const StuffFile &sf,const vector<int> &textures)
+void C3d::TextureChange(const StuffFile &sf, const vector<int> &textures, const vector<Diffuse> &diffuseColors)
 {
 	ClearTextures();
-	for(unsigned int i=0; i < g_pTexture.size(); i++)
+	for(unsigned int i=0; i < g_pMaterial.size(); i++)
 	{
 		int index = textures[i];
-		g_pTexture[i] = NULL;
+		g_pMaterial[i].pTexture = NULL;
 		if(index > -1)
 		{
 			vector<byte> data;
@@ -61,14 +61,15 @@ void C3d::TextureChange(const StuffFile &sf,const vector<int> &textures)
 			sf.files[index].handle->read(reinterpret_cast<char*>(&data[0]), sf.files[index].fileSize);
 			LPDIRECT3DTEXTURE9 tmp;
 			if(LoadTextureFromMemory(g_pd3dDevice, &data[0], &tmp))
-				g_pTexture[i] = tmp;
+				g_pMaterial[i].pTexture = tmp;
+			g_pMaterial[i].material.Diffuse = D3DXCOLOR(diffuseColors[i].r, diffuseColors[i].g, diffuseColors[i].b, 1);
 		}	
 	}
 }
 
 void C3d::SwapTexture(int x, int y)
 {
-	swap(g_pTexture[x], g_pTexture[y]);
+	swap(g_pMaterial[x], g_pMaterial[y]);
 }
 
 void C3d::Open(const TriFile &tfile)
@@ -99,9 +100,16 @@ void C3d::Open(const TriFile &tfile)
 	
 	ClearIndexes();
 	ClearTextures();
-	g_pTexture.resize(tfile.header.numSurfaces);
+	g_pMaterial.resize(tfile.header.numSurfaces);
 	for(unsigned int i = 0; i < tfile.header.numSurfaces; i++)
-			g_pTexture[i] = NULL;
+	{
+		g_pMaterial[i].pTexture = NULL;
+		g_pMaterial[i].material.Ambient = D3DXCOLOR(1, 1, 1, 1);
+		g_pMaterial[i].material.Diffuse = D3DXCOLOR(1, 1, 1, 1);
+		g_pMaterial[i].material.Emissive = D3DXCOLOR(1, 1, 1, 1);
+		g_pMaterial[i].material.Specular = D3DXCOLOR(1, 1, 1, 1);
+		g_pMaterial[i].material.Power = 1;
+	}
 	g_pIB.resize(tfile.header.numSurfaces);
 	fcount.resize(tfile.header.numSurfaces);
 	for(dword i = 0; i < tfile.header.numSurfaces; i++)
@@ -128,7 +136,7 @@ C3d::C3d()
 	g_pD3D = NULL;
 	g_pVB = NULL;
 	g_pIB.resize(0);
-	g_pTexture.resize(0);
+	g_pMaterial.resize(0);
 	loaded = false;
 	distance = 1.0f;
 }
@@ -174,7 +182,7 @@ void C3d::InitD3D()
 
 void C3d::Reset()
 {
-		D3DPRESENT_PARAMETERS d3dpp;
+	D3DPRESENT_PARAMETERS d3dpp;
 	ZeroMemory( &d3dpp, sizeof(d3dpp) );
 	d3dpp.Windowed = TRUE;
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
@@ -182,7 +190,7 @@ void C3d::Reset()
 	d3dpp.EnableAutoDepthStencil = TRUE;
 	d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
 	HRESULT aa  = g_pd3dDevice->Reset(&d3dpp);
-		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
 	g_pd3dDevice->LightEnable( 0, TRUE );
 	g_pd3dDevice->SetRenderState( D3DRS_LIGHTING, TRUE );
@@ -258,24 +266,15 @@ void C3d::Render()
 		g_pd3dDevice->SetFVF( D3DFVF_CUSTOMVERTEX );
 		for(dword i = 0; i < g_pIB.size(); i++)
 		{
-			LPDIRECT3DTEXTURE9 tmp = g_pTexture[i];
-			g_pd3dDevice->SetTexture( 0, tmp );
-			//tmp = g_pTexture[1];
-			//g_pd3dDevice->SetTexture( 1, tmp );
+			g_pd3dDevice->SetTexture( 0, g_pMaterial[i].pTexture );
 			g_pd3dDevice->SetIndices( g_pIB[i]);
-			//g_pd3dDevice->SetRenderState(
-			//g_pd3dDevice->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_BUMPENVMAP);
-			//g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTA_SPECULAR);
-			
-//g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-//g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
-//g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-//g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_DIFFUSE);
-			//g_pd3dDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTA_TEXTURE );
-			//g_pd3dDevice->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTA_ALPHAREPLICATE );
-			//g_pd3dDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_BUMPENVMAP);
-			//g_pd3dDevice->SetTextureStageState( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-			//g_pd3dDevice->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_BUMPENVMAPLUMINANCE );
+			g_pd3dDevice->SetRenderState(D3DRS_TEXTUREFACTOR, D3DXCOLOR(g_pMaterial[i].material.Diffuse));
+			g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+			g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+			g_pd3dDevice->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
+
+			g_pd3dDevice->SetMaterial(&g_pMaterial[i].material);
+
 			if(loaded)
 				g_pd3dDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST,0,0,vcount,0,fcount[i]);
 		}
